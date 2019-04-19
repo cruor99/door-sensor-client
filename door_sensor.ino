@@ -1,14 +1,13 @@
 
 #include "ESP8266WiFi.h"
-#include "WiFiClientSecure.h"
 
 const char* ssid = "";
 const char* password = "";
 const int SENSOR_PIN = D5;
 
-WiFiClientSecure client;
+WiFiClient client;
 const char* host = "";
-const int httpsPort = 443;
+const int httpsPort = 5000;
 
 void setup() {
   // put your setup code here, to run once:
@@ -65,16 +64,27 @@ void checkWifi(){
 }
 
 bool sendDataToServer(int dvRef, String data){
-  if (!client.connect(host, httpsPort)){
-    Serial.println("Connection Failed");
-    return false;
-  }
 
-  String url = "/sensor?request=controldevicebyvalue&ref=" + String(dvRef) + "&value=" + String(data);
-  client.print(String("GET ") + url + " HTTP/1.1\r\n"+
-               "Host: " + host + "\r\n" +
-               "User-Agent: ESP8266-veranda\r\n" +
-               "Connection: close\r\n\r\n");
+  if (client.connect(host,5000))
+  {
+    String getStr = "/sensor?dvref="+String(dvRef)+"&devicedata="+String(data);
+
+    client.println("GET "+getStr);
+    client.println(" HTTP/1.1");
+    client.println("Host: "+String(host));
+    client.println("User-Agent: NodeMCU-veranda");
+    client.println("Connection: close");
+
+    client.println();
+
+
+    while(client.available()){
+  char c = client.read();
+  Serial.print(c);
+    }
+    Serial.println("");
+  }
+  client.stop();
   Serial.println("Request sent (device " + String(dvRef) + ", data " + String(data) +")");
 }
 
