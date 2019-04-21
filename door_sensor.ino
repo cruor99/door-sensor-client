@@ -81,7 +81,7 @@ bool sendDataToServer(int dvRef, String data){
     client.println();
     */
 
-    String postEndpoint = "/sensor";
+    String postEndpoint = "/api/v1/sensor";
     String postData = "";
     StaticJsonDocument<200> jsonData;
     jsonData["device_reference"] = String(dvRef);
