@@ -1,5 +1,7 @@
 
 #include "ESP8266WiFi.h"
+// https://github.com/bblanchon/ArduinoJson.git
+#include "ArduinoJson.h"
 
 const char* ssid = "";
 const char* password = "";
@@ -66,9 +68,10 @@ void checkWifi(){
 bool sendDataToServer(int dvRef, String data){
 
   if (client.connect(host,5000))
-  {
+  { 
+    /*
     String getStr = "/sensor?dvref="+String(dvRef)+"&devicedata="+String(data);
-
+    
     client.println("GET "+getStr);
     client.println(" HTTP/1.1");
     client.println("Host: "+String(host));
@@ -76,7 +79,27 @@ bool sendDataToServer(int dvRef, String data){
     client.println("Connection: close");
 
     client.println();
+    */
 
+    String postEndpoint = "/sensor";
+    String postData = "";
+    StaticJsonDocument<200> jsonData;
+    jsonData["device_reference"] = String(dvRef);
+    jsonData["device_status"] = String(data);
+
+    serializeJson(jsonData, postData);
+    Serial.println(postData);
+    
+    client.print("POST "+postEndpoint);
+    client.println(" HTTP/1.1");
+    client.println("Host: "+String(host));
+    client.println("User-Agent: NodeMCU-veranda");
+    client.println("Cache-Control: no-cache");
+    client.print("Content-Length:");
+    client.println(postData.length());
+    client.println("Content-Type: application/json");
+    client.println();
+    client.println(postData);
 
     while(client.available()){
   char c = client.read();
